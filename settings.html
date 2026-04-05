@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Settings - RuralConnect</title>
+
+<style>
+body{
+  font-family: Arial;
+  margin:0;
+  background:#f4fff4;
+  transition:0.3s;
+}
+
+header{
+  background:green;
+  color:white;
+  padding:15px;
+  text-align:center;
+}
+
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:15px;
+}
+
+.section{
+  background:white;
+  padding:15px;
+  margin:12px 0;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.save{ background:green; color:white; }
+.reset{ background:red; color:white; }
+.logout{ background:black; color:white; }
+
+.toggle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>⚙ Settings</h2>
+</header>
+
+<div class="container">
+
+<!-- 👤 ACCOUNT -->
+<div class="section">
+  <h3>👤 Account</h3>
+
+  <input id="name" placeholder="Name">
+  <input id="phone" placeholder="Contact Number">
+  <input id="email" placeholder="Email ID">
+
+  <input id="village" placeholder="Village">
+  <input id="district" placeholder="District">
+  <input id="state" placeholder="State">
+  <input id="address" placeholder="Address">
+
+  <input id="farmSize" placeholder="Farm Size (acres)">
+  <input id="cropType" placeholder="Crop Type">
+
+  <input id="wallet" placeholder="Wallet Balance">
+
+  <input id="farmerId" disabled>
+  <input id="joinedDate" disabled>
+</div>
+
+<!-- 💳 TRANSACTION HISTORY -->
+<div class="section">
+  <h3>💳 Transaction History</h3>
+  <div id="transactionList">
+    <!-- Transactions will load here dynamically -->
+  </div>
+</div>
+
+<!-- 📦 BOOKING HISTORY -->
+<div class="section">
+  <h3>📦 Booking History</h3>
+  <div id="bookingList">
+    <!-- Bookings will load dynamically -->
+  </div>
+</div>
+
+<!-- 🌙 DARK MODE -->
+<div class="section toggle">
+  <h3>🌙 Dark Mode</h3>
+  <input type="checkbox" id="themeToggle">
+</div>
+
+<!-- 🆘 HELP -->
+<div class="section">
+  <h3>🆘 Help</h3>
+  <button onclick="voiceHelp()">🎤 Voice Help</button>
+</div>
+
+<!-- SAVE -->
+<div class="section">
+  <button class="save" onclick="saveData()">Save Settings</button>
+  <button class="reset" onclick="resetData()">Reset</button>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+</div>
+
+<script>
+
+/* AUTO ID + DATE */
+if(!localStorage.getItem("farmerId")){
+  localStorage.setItem("farmerId","FRM"+Math.floor(Math.random()*99999));
+}
+
+if(!localStorage.getItem("joinedDate")){
+  localStorage.setItem("joinedDate", new Date().toLocaleDateString());
+}
+
+/* LOAD DATA */
+window.onload = function(){
+
+  document.getElementById("name").value = localStorage.getItem("name")||"";
+  document.getElementById("phone").value = localStorage.getItem("phone")||"";
+  document.getElementById("email").value = localStorage.getItem("email")||"";
+
+  document.getElementById("village").value = localStorage.getItem("village")||"";
+  document.getElementById("district").value = localStorage.getItem("district")||"";
+  document.getElementById("state").value = localStorage.getItem("state")||"";
+  document.getElementById("address").value = localStorage.getItem("address")||"";
+
+  document.getElementById("farmSize").value = localStorage.getItem("farmSize")||"";
+  document.getElementById("cropType").value = localStorage.getItem("cropType")||"";
+
+  document.getElementById("wallet").value = localStorage.getItem("wallet")||"0";
+
+  document.getElementById("farmerId").value = localStorage.getItem("farmerId");
+  document.getElementById("joinedDate").value = localStorage.getItem("joinedDate");
+
+  document.getElementById("themeToggle").checked =
+    localStorage.getItem("theme")==="dark";
+
+  applyTheme();
+  loadTransactions();
+  loadBookings();
+};
+
+/* SAVE */
+function saveData(){
+
+  localStorage.setItem("name",document.getElementById("name").value);
+  localStorage.setItem("phone",document.getElementById("phone").value);
+  localStorage.setItem("email",document.getElementById("email").value);
+
+  localStorage.setItem("village",document.getElementById("village").value);
+  localStorage.setItem("district",document.getElementById("district").value);
+  localStorage.setItem("state",document.getElementById("state").value);
+  localStorage.setItem("address",document.getElementById("address").value);
+
+  localStorage.setItem("farmSize",document.getElementById("farmSize").value);
+  localStorage.setItem("cropType",document.getElementById("cropType").value);
+
+  localStorage.setItem("wallet",document.getElementById("wallet").value);
+
+  localStorage.setItem("theme",
+    document.getElementById("themeToggle").checked ? "dark":"light"
+  );
+
+  alert("Saved Successfully ✅");
+  applyTheme();
+}
+
+/* RESET */
+function resetData(){
+  localStorage.clear();
+  location.reload();
+}
+
+/* LOGOUT */
+function logout(){
+  alert("Logged out successfully 🚪");
+  window.location.href = "index.html"; 
+}
+
+/* DARK MODE */
+function applyTheme(){
+
+  let theme = localStorage.getItem("theme");
+
+  if(theme==="dark"){
+    document.body.style.background="#121212";
+    document.body.style.color="white";
+  }else{
+    document.body.style.background="#f4fff4";
+    document.body.style.color="black";
+  }
+}
+
+/* VOICE HELP */
+function voiceHelp(){
+  let msg = new SpeechSynthesisUtterance(
+    "This is your settings page. You can manage account, bookings, transactions and logout."
+  );
+  speechSynthesis.speak(msg);
+}
+
+/* DYNAMIC TRANSACTIONS & BOOKINGS */
+
+// Load transactions dynamically
+function loadTransactions(){
+  const list = document.getElementById("transactionList");
+  list.innerHTML = "";
+
+  const transactions = JSON.parse(localStorage.getItem("transactions")||"[]");
+
+  if(transactions.length===0){
+    list.innerHTML = "<p>No transactions yet.</p>";
+  } else {
+    transactions.forEach(t=>{
+      const p = document.createElement("p");
+      p.textContent = `✔ ${t.type} - ₹${t.amount} (${t.date})`;
+      list.appendChild(p);
+    });
+  }
+}
+
+// Load bookings dynamically
+function loadBookings(){
+  const list = document.getElementById("bookingList");
+  list.innerHTML = "";
+
+  const bookings = JSON.parse(localStorage.getItem("bookings")||"[]");
+
+  if(bookings.length===0){
+    list.innerHTML = "<p>No bookings yet.</p>";
+  } else {
+    bookings.forEach(b=>{
+      const p = document.createElement("p");
+      p.textContent = `✔ ${b.item} booked - ${b.date}`;
+      list.appendChild(p);
+    });
+  }
+}
+
+/* UTILITY FUNCTION: Add transaction */
+function addTransaction(type, amount){
+  let transactions = JSON.parse(localStorage.getItem("transactions")||"[]");
+  transactions.push({type, amount, date:new Date().toLocaleDateString()});
+  localStorage.setItem("transactions", JSON.stringify(transactions));
+  loadTransactions();
+}
+
+/* UTILITY FUNCTION: Add booking */
+function addBooking(item){
+  let bookings = JSON.parse(localStorage.getItem("bookings")||"[]");
+  bookings.push({item, date:new Date().toLocaleDateString()});
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+  loadBookings();
+}
+
+/* Example: When seeds.html calls after purchase */
+// addTransaction("Seed purchase", 500);
+// addBooking("Seeds");
+
+</script>
+
+</body>
+</html>

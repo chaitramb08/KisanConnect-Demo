@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KisanConnect 🚜 Machinery</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #d0f0c0, #a3e4a1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #4caf50;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  header h1 { margin: 0; font-size: 22px; }
+  #accountIcon { width:40px; height:40px; border-radius:50%; cursor:pointer; border:2px solid white; }
+
+  h2 { margin:20px; text-align:center; color:#333; }
+  #machineContainer { display:flex; flex-wrap:wrap; justify-content:center; padding:10px; flex:1; }
+
+  .card, .info-card {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    width:200px;
+    margin:10px;
+    padding:15px;
+    background:white;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    transition:0.3s;
+    text-align:center;
+  }
+  .card:hover { transform:translateY(-3px); box-shadow:0 4px 12px rgba(0,0,0,0.25); background:#c8e6c9; }
+  .info-card p { margin:5px 0; text-align:left; width:100%; }
+  .info-card label { display:block; margin:5px 0; }
+  .book-btn { margin-top:10px; padding:10px 0; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer; width:100%; text-align:center; }
+  .available { background-color:#4caf50; }
+  .unavailable { background-color:#9e9e9e; cursor:not-allowed; }
+
+  footer {
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:10px 0;
+    background-color:#4caf50;
+    color:white;
+    box-shadow:0 -2px 5px rgba(0,0,0,0.2);
+  }
+  footer div { cursor:pointer; font-size:16px; display:flex; flex-direction:column; align-items:center; }
+
+  #spokenText { font-size:16px; margin:10px; font-weight:bold; color:#333; }
+</style>
+</head>
+
+<body>
+<header>
+  <h1 id="headerTitle">🚜 KisanConnect - Book Machine</h1>
+  <img id="accountIcon" src="account.png" title="Account">
+</header>
+
+<h2 id="selectMachineTitle">Select Machine</h2>
+<button id="speakBtn">🎤 Speak</button>
+<div id="spokenText"></div>
+<div id="machineContainer"></div>
+
+<h2 id="machineDetailsTitle">Machine Details</h2>
+<div id="machineDetails"></div>
+
+<footer>
+  <div id="btnHome">🏠 Home</div>
+  <div id="btnBooking">📋 Booking Details</div>
+  <div id="btnSettings">⚙️ Settings</div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCd87kuslaZUab4wGMbTqFVED3bFtQLjgw",
+  authDomain: "ruralconect.firebaseapp.com",
+  projectId: "ruralconect",
+  storageBucket: "ruralconect.firebasestorage.app",
+  messagingSenderId: "196219307705",
+  appId: "1:196219307705:web:fc9c48f87eaf614cb9bd68"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Language translations
+const languages = {
+  en: { header:"🚜 KisanConnect - Book Machine", select:"Select Machine", details:"Machine Details",
+        machines:{ Tractor:{name:"Tractor"}, Harvester:{name:"Harvester"}, Seeder:{name:"Seeder"}, Sprayer:{name:"Sprayer"} } },
+  kn: { header:"🚜 ಕಿಸಾನ್ ಕನೆಕ್ಟ್ - ಯಂತ್ರ ಬುಕ್ ಮಾಡಿ", select:"ಯಂತ್ರ ಆಯ್ಕೆಮಾಡಿ", details:"ಯಂತ್ರ ವಿವರಗಳು",
+        machines:{ Tractor:{name:"ಟ್ರಾಕ್ಟರ್"}, Harvester:{name:"ಹಾರ್ವೆಸ್ಟರ್"}, Seeder:{name:"ಸೀಡರ್"}, Sprayer:{name:"ಸ್ಪ್ರೇರ್"} } },
+  hi: { header:"🚜 किसान कनेक्ट - मशीन बुक करें", select:"मशीन चुनें", details:"मशीन विवरण",
+        machines:{ Tractor:{name:"ट्रैक्टर"}, Harvester:{name:"हार्वेस्टर"}, Seeder:{name:"सीडर"}, Sprayer:{name:"स्प्रेयर"} } }
+};
+
+// Apply language
+function applyLanguage(){
+  const lang = localStorage.getItem('language') || 'en';
+  document.getElementById("headerTitle").innerText = languages[lang].header;
+  document.getElementById("selectMachineTitle").innerText = languages[lang].select;
+  document.getElementById("machineDetailsTitle").innerText = languages[lang].details;
+}
+applyLanguage();
+
+// Account icon
+document.getElementById("accountIcon").onclick = () => alert("User: Farmer1\nID: farmer1\nLocation: Mangalore");
+
+// Footer navigation
+document.getElementById("btnHome").onclick = () => window.location.href="index.html";
+document.getElementById("btnBooking").onclick = () => window.location.href="booking.html";
+document.getElementById("btnSettings").onclick = () => window.location.href="settings.html";
+
+// Machines data
+const machines = { Tractor:{emoji:"🚜", desc:"Land preparation"},
+                   Harvester:{emoji:"🌾", desc:"Crop cutting"},
+                   Seeder:{emoji:"🌱", desc:"Sowing seeds"},
+                   Sprayer:{emoji:"💧", desc:"Pesticide spraying"} };
+
+function renderMachineCards(){
+  const container = document.getElementById("machineContainer");
+  container.innerHTML="";
+  const lang = localStorage.getItem('language') || 'en';
+  for(const key in machines){
+    const card = document.createElement("div");
+    card.className="card";
+    const translatedName = languages[lang].machines[key]?.name || key;
+    card.innerHTML=`${machines[key].emoji}<h3>${translatedName}</h3><p>${machines[key].desc}</p>`;
+    card.onclick = ()=>selectMachine(key);
+    container.appendChild(card);
+  }
+}
+renderMachineCards();
+
+// Voice input
+document.getElementById("speakBtn").onclick = () => {
+  if(!('webkitSpeechRecognition' in window)){ alert("Speech Recognition not supported"); return; }
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = (event)=>{
+    const spoken = event.results[0][0].transcript.trim();
+    document.getElementById("spokenText").innerText = "You said: " + spoken;
+    const matched = Object.keys(machines).find(k=> spoken.toLowerCase().includes(k.toLowerCase()));
+    if(matched) selectMachine(matched);
+    else document.getElementById("machineDetails").innerHTML = "<p style='color:red;'>Machine not recognized</p>";
+  };
+  recognition.onerror = (e)=>alert("Error: "+e.error);
+  recognition.start();
+};
+
+// Fetch and display machine details
+async function selectMachine(machineName){
+  const detailsDiv = document.getElementById("machineDetails");
+  detailsDiv.innerHTML="Loading details...";
+  try{
+    const q = query(collection(db,"machinery"), where("Name","==",machineName));
+    const snapshot = await getDocs(q);
+    if(snapshot.empty){ detailsDiv.innerHTML="No details found."; return; }
+    detailsDiv.innerHTML="";
+    const lang = localStorage.getItem('language') || 'en';
+
+    snapshot.forEach(docSnap=>{
+      const d = docSnap.data();
+      const avail = d.Availability!==false;
+      const id = docSnap.id;
+      const translatedName = languages[lang].machines[d.Name]?.name || d.Name;
+
+      const card = document.createElement("div");
+      card.className="info-card";
+      card.innerHTML=`
+        <h3>${translatedName}</h3>
+        <p>👤 Owner: ${d.Owner || "N/A"}</p>
+        <p>💰 Price/day: ₹${d["Price Per Day"] || "N/A"}</p>
+        <p>📍 Location: ${d.Location || "N/A"}</p>
+        <p>📞 Contact: ${d.ContactNumber || "N/A"}</p>
+        <p>✅ Available: ${avail?"Yes":"No"}</p>
+        <label>Number: <input type="number" id="num_${id}" min="1" value="1" ${!avail?'disabled':''}></label>
+        <button class="book-btn ${avail?"available":"unavailable"}" ${!avail?'disabled':''}>${avail?"Book":"Unavailable"}</button>
+      `;
+      if(avail){
+        const btn = card.querySelector("button");
+        btn.addEventListener("click",()=>{
+          const num = document.getElementById(`num_${id}`).value;
+          const total = num * (d["Price Per Day"] || 0);
+          const paid = confirm(`Pay ₹${total} to book ${translatedName}?`);
+          if(paid){ 
+            // Store in localStorage
+            let bookings = JSON.parse(localStorage.getItem("machineBookings")||"[]");
+            bookings.push({
+              machine: translatedName,
+              owner: d.Owner || "N/A",
+              qty: num,
+              total: total,
+              date: new Date().toLocaleDateString()
+            });
+            localStorage.setItem("machineBookings", JSON.stringify(bookings));
+            alert(`${translatedName} booked successfully!`);
+          }
+        });
+      }
+      detailsDiv.appendChild(card);
+    });
+
+  }catch(err){
+    console.error(err);
+    detailsDiv.innerHTML="Error fetching data.";
+  }
+}
+</script>
+</body>
+</html>

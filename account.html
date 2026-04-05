@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Account - RuralConnect</title>
+
+<style>
+body{
+  font-family: Arial;
+  margin:0;
+  background:#f4fff4;
+}
+
+header{
+  background:green;
+  color:white;
+  padding:15px;
+  text-align:center;
+}
+
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:15px;
+}
+
+.box{
+  background:white;
+  padding:15px;
+  margin:12px 0;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.save{ background:green; color:white; }
+.reset{ background:red; color:white; }
+
+label{
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>👤 Farmer Account</h2>
+</header>
+
+<div class="container">
+
+<!-- 👤 BASIC INFO -->
+<div class="box">
+  <h3>👤 Personal Details</h3>
+
+  <label>Name</label>
+  <input id="name">
+
+  <label>Contact Number</label>
+  <input id="phone">
+
+  <label>Email ID</label>
+  <input id="email">
+
+  <label>Farmer ID</label>
+  <input id="farmerId" disabled>
+
+  <label>Joined Date</label>
+  <input id="joinedDate" disabled>
+</div>
+
+<!-- 📍 LOCATION -->
+<div class="box">
+  <h3>📍 Location</h3>
+
+  <label>Village</label>
+  <input id="village">
+
+  <label>District</label>
+  <input id="district">
+
+  <label>State</label>
+  <input id="state">
+
+  <label>Full Address</label>
+  <input id="address">
+</div>
+
+<!-- 🚜 FARM DETAILS -->
+<div class="box">
+  <h3>🚜 Farm Details</h3>
+
+  <label>Farm Size (acres)</label>
+  <input id="farmSize">
+
+  <label>Crop Type</label>
+  <input id="cropType">
+</div>
+
+<!-- 💰 WALLET -->
+<div class="box">
+  <h3>💰 Wallet</h3>
+
+  <label>Balance (₹)</label>
+  <input id="wallet" value="0">
+
+  <button onclick="addMoney()">➕ Add ₹500 Demo Money</button>
+</div>
+
+<!-- 🔔 HELP + NOTIFICATIONS -->
+<div class="box">
+  <h3>🔔 Help & Notifications</h3>
+
+  <label><input type="checkbox" id="notif1"> Booking Alerts</label><br>
+  <label><input type="checkbox" id="notif2"> Payment Alerts</label><br>
+  <label><input type="checkbox" id="notif3"> Machine Updates</label>
+</div>
+
+<!-- SAVE BUTTONS -->
+<div class="box">
+  <button class="save" onclick="saveData()">Save Account</button>
+  <button class="reset" onclick="resetData()">Reset</button>
+</div>
+
+</div>
+
+<script>
+
+/* GENERATE FARMER ID + DATE */
+if(!localStorage.getItem("farmerId")){
+  localStorage.setItem("farmerId", "FRM" + Math.floor(Math.random()*100000));
+}
+
+if(!localStorage.getItem("joinedDate")){
+  localStorage.setItem("joinedDate", new Date().toLocaleDateString());
+}
+
+/* LOAD DATA */
+window.onload = function(){
+
+  document.getElementById("name").value = localStorage.getItem("name") || "";
+  document.getElementById("phone").value = localStorage.getItem("phone") || "";
+  document.getElementById("email").value = localStorage.getItem("email") || "";
+
+  document.getElementById("village").value = localStorage.getItem("village") || "";
+  document.getElementById("district").value = localStorage.getItem("district") || "";
+  document.getElementById("state").value = localStorage.getItem("state") || "";
+  document.getElementById("address").value = localStorage.getItem("address") || "";
+
+  document.getElementById("farmSize").value = localStorage.getItem("farmSize") || "";
+  document.getElementById("cropType").value = localStorage.getItem("cropType") || "";
+
+  document.getElementById("wallet").value = localStorage.getItem("wallet") || "0";
+
+  document.getElementById("farmerId").value = localStorage.getItem("farmerId");
+  document.getElementById("joinedDate").value = localStorage.getItem("joinedDate");
+
+  document.getElementById("notif1").checked = localStorage.getItem("notif1") === "true";
+  document.getElementById("notif2").checked = localStorage.getItem("notif2") === "true";
+  document.getElementById("notif3").checked = localStorage.getItem("notif3") === "true";
+};
+
+/* SAVE */
+function saveData(){
+
+  localStorage.setItem("name", document.getElementById("name").value);
+  localStorage.setItem("phone", document.getElementById("phone").value);
+  localStorage.setItem("email", document.getElementById("email").value);
+
+  localStorage.setItem("village", document.getElementById("village").value);
+  localStorage.setItem("district", document.getElementById("district").value);
+  localStorage.setItem("state", document.getElementById("state").value);
+  localStorage.setItem("address", document.getElementById("address").value);
+
+  localStorage.setItem("farmSize", document.getElementById("farmSize").value);
+  localStorage.setItem("cropType", document.getElementById("cropType").value);
+
+  localStorage.setItem("wallet", document.getElementById("wallet").value);
+
+  localStorage.setItem("notif1", document.getElementById("notif1").checked);
+  localStorage.setItem("notif2", document.getElementById("notif2").checked);
+  localStorage.setItem("notif3", document.getElementById("notif3").checked);
+
+  alert("Account Saved ✅");
+}
+
+/* RESET */
+function resetData(){
+  localStorage.clear();
+  location.reload();
+}
+
+/* WALLET DEMO */
+function addMoney(){
+  let w = parseInt(document.getElementById("wallet").value || "0");
+  w += 500;
+  document.getElementById("wallet").value = w;
+  localStorage.setItem("wallet", w);
+}
+
+</script>
+
+</body>
+</html>

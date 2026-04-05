@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌱 Buy Seeds - RuralConnect</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4fff4;
+    text-align: center;
+    margin: 0;
+    padding: 0 0 70px 0;
+  }
+  header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px 20px;
+    background: #4caf50;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  #langIcon {
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    margin-right: 15px;
+  }
+  #langDropdown {
+    position: absolute;
+    top: 60px;
+    right: 70px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: none;
+    z-index: 200;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  #langDropdown div {
+    padding: 8px 15px;
+    cursor: pointer;
+  }
+  #langDropdown div:hover { background: #f0f0f0; }
+  h1 { color: green; margin-top: 70px; }
+  .container { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+  .card {
+    background: white; border: 1px solid #ccc; border-radius: 12px;
+    padding: 15px; margin: 10px; width: 260px; text-align: left;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  .book { background: green; color: white; }
+  .no { background: red; color: white; }
+  .popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+  .popup-content { background: white; width: 320px; margin: 80px auto; padding: 20px; border-radius: 10px; }
+  footer {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    display: flex; justify-content: space-around; background: #4caf50; padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2); z-index: 100;
+  }
+  footer button { background: transparent; border: none; color: white; font-size: 16px; cursor: pointer; }
+  footer button:hover { text-decoration: underline; }
+  label { font-weight: bold; }
+  select, input { width: 100%; margin-top: 5px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="langIcon">🌐</div>
+  <img src="account_icon.png" alt="Account" onclick="goToSettings()">
+</header>
+
+<div id="langDropdown"></div>
+
+<h1 id="pageTitle">🌱 Buy Seeds</h1>
+<div class="container" id="list"></div>
+
+<!-- BUY POPUP -->
+<div class="popup" id="popup">
+  <div class="popup-content">
+    <h3 id="seedName"></h3>
+    <label>Quantity:</label><br>
+    <input type="number" id="qty" placeholder="Enter kg or grams"><br><br>
+    <label>Unit:</label>
+    <select id="unit">
+      <option value="kg">Kg</option>
+      <option value="gram">Gram</option>
+    </select><br><br>
+    <label>Payment Method:</label>
+    <select id="paymentMethod">
+      <option value="UPI">UPI</option>
+      <option value="Cash">Cash</option>
+      <option value="Card">Card</option>
+    </select><br><br>
+    <p id="priceText">Total Price: ₹0</p>
+    <button onclick="confirmBook()" class="book">Confirm Buy</button>
+    <button onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+<footer>
+  <button onclick="goToHome()">🏠 Home</button>
+  <button onclick="goToBookingDetails()">📋 Booking Details</button>
+  <button onclick="goToSettings()">⚙️ Settings</button>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCd87kuslaZUab4wGMbTqFVED3bFtQLjgw",
+  authDomain: "ruralconect.firebaseapp.com",
+  projectId: "ruralconect",
+  storageBucket: "ruralconect.firebasestorage.app",
+  messagingSenderId: "196219307705",
+  appId: "1:196219307705:web:e6f1efb0c767ceffb9bd68"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let selectedSeed = null;
+let pricePerKg = 0;
+
+// Navigation
+window.goToHome = () => { window.location.href = "index.html"; };
+window.goToBookingDetails = () => { window.location.href = "booking.html"; };
+window.goToSettings = () => { window.location.href = "settings.html"; };
+
+// Popup
+window.openPopup = (seed, price) => {
+  selectedSeed = seed;
+  pricePerKg = price;
+  document.getElementById("seedName").innerText = seed;
+  document.getElementById("qty").value = '';
+  document.getElementById("unit").value = 'kg';
+  document.getElementById("paymentMethod").value = 'UPI';
+  updatePrice();
+  document.getElementById("popup").style.display = "block";
+};
+window.closePopup = () => { document.getElementById("popup").style.display = "none"; };
+
+// Confirm purchase
+window.confirmBook = async () => {
+  const qty = parseFloat(document.getElementById("qty").value);
+  const unit = document.getElementById("unit").value;
+  const payment = document.getElementById("paymentMethod").value;
+
+  if(!qty || qty <= 0){ alert("Enter a valid quantity!"); return; }
+
+  const kg = unit === "kg" ? qty : qty / 1000;
+  const totalPrice = kg * pricePerKg;
+
+  try{
+    // Firestore booking
+    const bookingsRef = collection(db,"seedBookings");
+    await addDoc(bookingsRef,{
+      userId: "farmer1", 
+      seedName: selectedSeed,
+      quantity: qty,
+      unit: unit,
+      totalPrice: totalPrice,
+      paymentMethod: payment,
+      date: Timestamp.fromDate(new Date())
+    });
+
+    // Save to localStorage
+    let transactions = JSON.parse(localStorage.getItem("transactions")||"[]");
+    transactions.push({
+      type: selectedSeed,
+      amount: totalPrice.toFixed(2),
+      date: new Date().toLocaleDateString(),
+      paymentMethod: payment
+    });
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+
+    let bookings = JSON.parse(localStorage.getItem("bookings")||"[]");
+    bookings.push({
+      item: selectedSeed,
+      date: new Date().toLocaleDateString(),
+      qty: qty + " " + unit,
+      paymentMethod: payment
+    });
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    alert(`✅ Payment Successful via ${payment}! You bought ${qty} ${unit} of ${selectedSeed} for ₹${totalPrice.toFixed(2)}`);
+    closePopup();
+  } catch(err){
+    console.error(err);
+    alert("❌ Payment Failed! Please try again.");
+  }
+};
+
+// Update price dynamically
+function updatePrice() {
+  const qty = parseFloat(document.getElementById("qty").value) || 0;
+  const unit = document.getElementById("unit").value;
+  const kg = unit === "kg" ? qty : qty/1000;
+  const total = kg * pricePerKg;
+  document.getElementById("priceText").innerText = "Total Price: ₹" + total.toFixed(2);
+}
+
+// Load seeds from Firestore
+window.onload = async () => {
+  const list = document.getElementById("list");
+  const snap = await getDocs(collection(db, "seeds"));
+  snap.forEach(doc => {
+    const d = doc.data();
+    const isAvailable = d.Available === true;
+    const seedName = d.Name.replace(/'/g, "\\'");
+    list.innerHTML += `
+      <div class="card">
+        <h3>${d.Name}</h3>
+        <p>₹${d.PricePerKg} / kg</p>
+        <p>Status: ${isAvailable ? "Available" : "Unavailable"}</p>
+        ${
+          isAvailable
+          ? `<button class="btn book" onclick="openPopup('${seedName}', ${d.PricePerKg})">Buy</button>`
+          : `<button class="btn no" disabled>Unavailable</button>`
+        }
+      </div>
+    `;
+  });
+
+  document.getElementById("qty").addEventListener("input", updatePrice);
+  document.getElementById("unit").addEventListener("change", updatePrice);
+};
+
+// Language support
+const languages = {
+  en: { title:'🌱 Buy Seeds' },
+  kn: { title:'🌱 ಬೀಜ ಖರೀದಿಸಿ' },
+  hi: { title:'🌱 बीज खरीदें' }
+};
+const langIcon = document.getElementById('langIcon');
+const langDropdown = document.getElementById('langDropdown');
+for(const code in languages){
+  const div = document.createElement('div');
+  div.innerText = code.toUpperCase();
+  div.onclick = () => { 
+    localStorage.setItem('language', code); 
+    applyLanguage(); 
+    langDropdown.style.display='none'; 
+  };
+  langDropdown.appendChild(div);
+}
+langIcon.onclick = () => { langDropdown.style.display = langDropdown.style.display==='block'?'none':'block'; };
+function applyLanguage(){ 
+  const lang = localStorage.getItem('language')||'en'; 
+  document.getElementById('pageTitle').innerText = languages[lang].title; 
+}
+applyLanguage();
+</script>
+
+</body>
+</html>

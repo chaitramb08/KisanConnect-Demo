@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KisanConnect 👷 Labour</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #d0f0c0, #a3e4a1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #4caf50;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  header h1 { margin: 0; font-size: 22px; }
+  #accountIcon { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+
+  h2 { margin: 20px; text-align: center; color: #333; }
+
+  #list { display: flex; flex-wrap: wrap; justify-content: center; padding: 10px; flex: 1; }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 250px;
+    margin: 10px;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: 0.3s;
+    text-align: left;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+  .card p { margin: 5px 0; }
+  .book-btn { margin-top: 10px; padding: 10px 0; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; width: 100%; text-align: center; }
+  .available { background-color: #4caf50; }
+  .unavailable { background-color: #9e9e9e; cursor: not-allowed; }
+
+  footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    background-color: #4caf50;
+    color: white;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+  }
+  footer div { cursor: pointer; font-size: 16px; display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+
+<body>
+<header>
+  <h1 id="headerTitle">👷 KisanConnect Labour</h1>
+  <img id="accountIcon" src="account.png" title="Account">
+</header>
+
+<h2 id="labourTitle">Available Labour</h2>
+<div id="list">Loading...</div>
+
+<footer>
+  <div id="btnHome">🏠 Home</div>
+  <div id="btnBooking">📋 Booking Details</div>
+  <div id="btnSettings">⚙️ Settings</div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCd87kuslaZUab4wGMbTqFVED3bFtQLjgw",
+  authDomain: "ruralconect.firebaseapp.com",
+  projectId: "ruralconect",
+  storageBucket: "ruralconect.firebasestorage.app",
+  messagingSenderId: "196219307705",
+  appId: "1:196219307705:web:fc9c48f87eaf614cb9bd68"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Language translations
+const languages = {
+  en: { header: "👷 KisanConnect Labour", labourTitle:"Available Labour", skill:"Skill", available:"Available", book:"Book", unavailable:"Unavailable" },
+  kn: { header: "👷 ಕಿಸಾನ್ ಕನೆಕ್ಟ್ - ಕಾರ್ಮಿಕರು", labourTitle:"ಲಭ್ಯವಿರುವ ಕಾರ್ಮಿಕರು", skill:"ಕೌಶಲ್ಯ", available:"ಲಭ್ಯವಿದೆ", book:"ಬುಕ್ ಮಾಡಿ", unavailable:"ಲಭ್ಯವಿಲ್ಲ" },
+  hi: { header: "👷 किसान कनेक्ट - श्रमिक", labourTitle:"उपलब्ध श्रमिक", skill:"कौशल", available:"उपलब्ध", book:"बुक करें", unavailable:"अनुपलब्ध" }
+};
+
+function applyLanguage(){
+  const lang = localStorage.getItem('language') || 'en';
+  document.getElementById("headerTitle").innerText = languages[lang].header;
+  document.getElementById("labourTitle").innerText = languages[lang].labourTitle;
+}
+applyLanguage();
+
+// Account icon click
+document.getElementById("accountIcon").onclick = () => {
+  alert("Farmer: Farmer1\nID: farmer1\nLocation: Mangalore");
+};
+
+// Footer nav
+document.getElementById("btnHome").onclick = () => window.location.href="index.html";
+document.getElementById("btnBooking").onclick = () => window.location.href="booking.html";
+document.getElementById("btnSettings").onclick = () => window.location.href="settings.html";
+
+// Load labour
+async function loadLabour() {
+  const list = document.getElementById("list");
+  list.innerHTML = "Loading...";
+  try {
+    const snapshot = await getDocs(collection(db,"labour"));
+    list.innerHTML = "";
+    const now = new Date();
+    if(snapshot.empty) { list.innerHTML="No labour found"; return; }
+
+    const lang = localStorage.getItem('language') || 'en';
+
+    snapshot.forEach(async docSnap => {
+      const d = docSnap.data();
+      const id = docSnap.id;
+
+      let available = true;
+      let availabilityText = languages[lang].available;
+
+      if(d.UnavailableUntil){
+        const until = d.UnavailableUntil.toDate ? d.UnavailableUntil.toDate() : new Date(d.UnavailableUntil);
+        if(now < until){
+          available = false;
+          availabilityText = `${languages[lang].unavailable} until ${until.toLocaleDateString()} ${until.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+        } else {
+          const labourRef = doc(db,"labour",id);
+          await updateDoc(labourRef, { Availability:true, UnavailableUntil:null });
+          available = true;
+          availabilityText = languages[lang].available;
+        }
+      } else if(d.Availability === false){
+        available = false;
+        availabilityText = languages[lang].unavailable;
+      }
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div>
+          <h3>👤 ${d.Name}</h3>
+          <p>👷 ${languages[lang].skill}: ${d.Skill}</p>
+          <p>📍 Location: ${d.Location}</p>
+          <p>📞 Contact: ${d.ContactNumber}</p>
+          <p>✅ Availability: ${availabilityText}</p>
+        </div>
+        <button class="book-btn ${available?"available":"unavailable"}" ${available?"":"disabled"}>
+          ${available ? languages[lang].book : languages[lang].unavailable}
+        </button>
+      `;
+
+      if(available){
+        const btn = card.querySelector("button");
+        btn.addEventListener("click", async () => {
+          const confirmBooking = confirm(`Pay ₹500 to book ${d.Name}?`);
+          if(!confirmBooking) return;
+
+          const unavailableUntil = new Date();
+          unavailableUntil.setHours(unavailableUntil.getHours()+8);
+
+          try{
+            // Update labour availability
+            const labourRef = doc(db,"labour",id);
+            await updateDoc(labourRef, { Availability:false, UnavailableUntil:Timestamp.fromDate(unavailableUntil) });
+
+            // Add booking record
+            const bookingsRef = collection(db,"labourBookings");
+            await addDoc(bookingsRef,{
+              userId: "farmer1",   // replace with actual logged-in user
+              labourId: id,
+              labourName: d.Name,
+              Skill: d.Skill,
+              ContactNumber: d.ContactNumber,
+              Location: d.Location,
+              date: Timestamp.fromDate(new Date()),
+              totalPrice: 500
+            });
+
+            alert(`${d.Name} booked successfully until ${unavailableUntil.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`);
+            loadLabour();
+          } catch(err){
+            console.error(err);
+            alert("Error booking labour");
+          }
+        });
+      }
+
+      list.appendChild(card);
+    });
+  } catch(err){
+    console.error(err);
+    list.innerHTML="❌ Error loading data (check console)";
+  }
+}
+
+window.addEventListener("DOMContentLoaded", loadLabour);
+</script>
+</body>
+</html>

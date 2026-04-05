@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌾 KisanConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background: linear-gradient(135deg, #d0f0c0, #a3e4a1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-bottom: 70px;
+  }
+
+  header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #4caf50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+  }
+
+  header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+
+  header #langIcon {
+    font-size: 24px;
+    cursor: pointer;
+    margin-left: 10px;
+    color: white;
+  }
+
+  #langDropdown {
+    position: absolute;
+    top: 60px;
+    right: 70px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: none;
+    z-index: 200;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  #langDropdown div {
+    padding: 8px 15px;
+    cursor: pointer;
+  }
+
+  #langDropdown div:hover {
+    background: #f0f0f0;
+  }
+
+  h1 {
+    margin-top: 100px;
+    font-size: 48px;
+    color: #2e7d32;
+    text-shadow: 1px 1px 4px #fff;
+  }
+
+  #voiceBtn {
+    margin-top: 10px;
+    padding: 10px 15px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+  }
+
+  #spokenText {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 5px;
+    color: #333;
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px;
+    gap: 30px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 180px;
+    height: 180px;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 22px;
+    color: #2e7d32;
+  }
+
+  .card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    background: #c8e6c9;
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    background: #4caf50;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+
+  footer button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  footer button:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div id="langIcon">🌐</div>
+  <img src="account_icon.png" alt="Account" onclick="goToSettings()">
+</header>
+
+<!-- Language dropdown -->
+<div id="langDropdown"></div>
+
+<h1 id="title">🌾 KisanConnect</h1>
+
+<!-- Voice input -->
+<button id="voiceBtn" onclick="startVoice()">🎤 Speak</button>
+<div id="spokenText"></div>
+
+<div class="container">
+  <div class="card" onclick="goToMachinery()" id="cardMachinery">
+    🚜<br><span id="txtMachinery">Book Machine</span>
+  </div>
+
+  <div class="card" onclick="goToLabour()" id="cardLabour">
+    👷<br><span id="txtLabour">Book Labour</span>
+  </div>
+
+  <div class="card" onclick="goToSeeds()" id="cardSeeds">
+    🌱<br><span id="txtSeeds">Buy Seeds</span>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <button onclick="goToHome()" id="btnHome">🏠 Home</button>
+  <button onclick="goToBookingDetails()" id="btnBooking">📋 Booking Details</button>
+  <button onclick="goToSettings()" id="btnSettings">⚙️ Settings</button>
+</footer>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCd87kuslaZUab4wGMbTqFVED3bFtQLjgw",
+    authDomain: "ruralconect.firebaseapp.com",
+    projectId: "ruralconect",
+    storageBucket: "ruralconect.firebasestorage.app",
+    messagingSenderId: "196219307705",
+    appId: "1:196219307705:web:fc9c48f87eaf614cb9bd68"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+
+<script>
+  // Navigation
+  function goToMachinery(){ window.location.href="machinery.html"; }
+  function goToLabour(){ window.location.href="labour.html"; }
+  function goToSeeds(){ window.location.href="seeds.html"; }
+  function goToHome(){ window.location.href="index.html"; }
+  function goToBookingDetails(){ window.location.href="booking.html"; }
+  function goToSettings(){ window.location.href="settings.html"; }
+
+  // Voice recognition
+  function startVoice(){
+    if(!('webkitSpeechRecognition' in window)){ alert('Speech Recognition not supported'); return; }
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.onresult = function(event){
+      const spoken = event.results[0][0].transcript.trim();
+      document.getElementById('spokenText').innerText = 'You said: ' + spoken;
+
+      if(spoken.toLowerCase().includes('machine')) goToMachinery();
+      else if(spoken.toLowerCase().includes('labour')) goToLabour();
+      else if(spoken.toLowerCase().includes('seed')) goToSeeds();
+      else document.getElementById('spokenText').innerText += ' (Not recognized)';
+    };
+    recognition.start();
+  }
+
+  // Languages
+  const languages = {
+    en: {name:'English', title:'🌾 KisanConnect', machinery:'Book Machine', labour:'Book Labour', seeds:'Buy Seeds'},
+    kn: {name:'Kannada', title:'🌾 ಕಿಸಾನ್ ಕನೆಕ್ಟ್', machinery:'ಯಂತ್ರ ಬುಕ್ ಮಾಡಿ', labour:'ಶ್ರಮಿಕ ಬುಕ್ ಮಾಡಿ', seeds:'ಬೀಜ ಖರೀದಿಸಿ'},
+    hi: {name:'Hindi', title:'🌾 किसान कनेक्ट', machinery:'मशीन बुक करें', labour:'श्रमिक बुक करें', seeds:'बीज खरीदें'},
+    ta: {name:'Tamil', title:'🌾 கிசான் கனெக்ட்', machinery:'இயந்திரம் புக் செய்க', labour:'தொழிலாளி புக் செய்க', seeds:'விதைகள் வாங்கு'},
+    te: {name:'Telugu', title:'🌾 కిసాన్ కనెక్ట్', machinery:'యంత్రాన్ని బుక్ చేయండి', labour:'శ్రమికుడిని బుక్ చేయండి', seeds:'బీజాలు కొనండి'},
+    mr: {name:'Marathi', title:'🌾 किझन कनेक्ट', machinery:'मशीन बुक करा', labour:'कामगार बुक करा', seeds:'बीज खरेदी करा'},
+    gu: {name:'Gujarati', title:'🌾 કિસાન કનેક્ટ', machinery:'મશીન બુક કરો', labour:'શ્રમિક બુક કરો', seeds:'વીજ ખરીદો'},
+    pa: {name:'Punjabi', title:'🌾 ਕਿਸਾਨ ਕਨੈਕਟ', machinery:'ਮਸ਼ੀਨ ਬੁੱਕ ਕਰੋ', labour:'ਮਜ਼ਦੂਰ ਬੁੱਕ ਕਰੋ', seeds:'ਬੀਜ ਖਰੀਦੋ'},
+    ur: {name:'Urdu', title:'🌾 کسان کنیکٹ', machinery:'مشین بک کریں', labour:'مزدور بک کریں', seeds:'بیج خریدیں'}
+  };
+
+  const langIcon = document.getElementById('langIcon');
+  const langDropdown = document.getElementById('langDropdown');
+
+  // populate dropdown dynamically
+  for(const code in languages){
+    const div = document.createElement('div');
+    div.innerText = languages[code].name;
+    div.onclick = ()=>{ localStorage.setItem('language', code); applyLanguage(); langDropdown.style.display='none'; };
+    langDropdown.appendChild(div);
+  }
+
+  langIcon.onclick = ()=>{ langDropdown.style.display = langDropdown.style.display==='block'?'none':'block'; };
+
+  function applyLanguage(){
+    const lang = localStorage.getItem('language') || 'en';
+    document.getElementById('title').innerText = languages[lang].title;
+    document.getElementById('txtMachinery').innerText = languages[lang].machinery;
+    document.getElementById('txtLabour').innerText = languages[lang].labour;
+    document.getElementById('txtSeeds').innerText = languages[lang].seeds;
+  }
+
+  // initialize language
+  applyLanguage();
+</script>
+
+</body>
+</html>

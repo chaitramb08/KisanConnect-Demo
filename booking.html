@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>📋 Booking Details - KisanConnect</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4fff4; margin:0; padding-bottom:70px; }
+  h1 { text-align:center; margin:20px 0; color: #4caf50; }
+  #bookingContainer { max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:15px; padding:0 10px; }
+  .booking-card { background:white; padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+  .booking-card p { margin:5px 0; }
+  footer { position:fixed; bottom:0; left:0; width:100%; display:flex; justify-content:space-around; align-items:center; padding:10px 0; background:#4caf50; color:white; box-shadow:0 -2px 5px rgba(0,0,0,0.2); }
+  footer div { cursor:pointer; font-size:16px; display:flex; flex-direction:column; align-items:center; }
+  #noBookings { text-align:center; color:red; font-weight:bold; margin-top:50px; }
+</style>
+</head>
+<body>
+
+<h1>📋 Booking Details</h1>
+<div id="bookingContainer"></div>
+<div id="noBookings" style="display:none;">No bookings yet.</div>
+
+<footer>
+  <div id="btnHome">🏠 Home</div>
+  <div id="btnBooking">📋 Booking Details</div>
+  <div id="btnSettings">⚙️ Settings</div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCd87kuslaZUab4wGMbTqFVED3bFtQLjgw",
+  authDomain: "ruralconect.firebaseapp.com",
+  projectId: "ruralconect",
+  storageBucket: "ruralconect.firebasestorage.app",
+  messagingSenderId: "196219307705",
+  appId: "1:196219307705:web:fc9c48f87eaf614cb9bd68"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Footer navigation
+document.getElementById("btnHome").onclick = () => window.location.href="index.html";
+document.getElementById("btnBooking").onclick = () => window.location.href="booking.html";
+document.getElementById("btnSettings").onclick = () => window.location.href="settings.html";
+
+// Fetch bookings
+async function loadBookings(){
+  const container = document.getElementById("bookingContainer");
+  container.innerHTML = "";
+  let hasBooking = false;
+
+  // ---- MACHINE BOOKINGS ----
+  const machineSnap = await getDocs(collection(db,"machineBookings"));
+  machineSnap.forEach(docSnap=>{
+    hasBooking = true;
+    const d = docSnap.data();
+    const card = document.createElement("div");
+    card.className = "booking-card";
+    card.innerHTML = `
+      <h3>🚜 Machine: ${d.machineName}</h3>
+      <p>👤 User: ${d.userId}</p>
+      <p>Owner: ${d.owner}</p>
+      <p>Quantity: ${d.quantity}</p>
+      <p>Total Price: ₹${d.totalPrice}</p>
+      <p>Date: ${d.date}</p>
+    `;
+    container.appendChild(card);
+  });
+
+  // ---- SEED BOOKINGS (if implemented) ----
+  try {
+    const seedSnap = await getDocs(collection(db,"seedBookings"));
+    seedSnap.forEach(docSnap=>{
+      hasBooking = true;
+      const d = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "booking-card";
+      card.innerHTML = `
+        <h3>🌱 Seed: ${d.seedName}</h3>
+        <p>👤 User: ${d.userId}</p>
+        <p>Quantity: ${d.quantity} ${d.unit}</p>
+        <p>Total Price: ₹${d.totalPrice}</p>
+        <p>Date: ${d.date}</p>
+      `;
+      container.appendChild(card);
+    });
+  } catch(e){ console.warn("No seed bookings found"); }
+
+  // ---- LABOUR BOOKINGS (if implemented) ----
+  try {
+    const labourSnap = await getDocs(collection(db,"labourBookings"));
+    labourSnap.forEach(docSnap=>{
+      hasBooking = true;
+      const d = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "booking-card";
+      card.innerHTML = `
+        <h3>👷 Labour: ${d.labourType}</h3>
+        <p>👤 User: ${d.userId}</p>
+        <p>Number of Labourers: ${d.number}</p>
+        <p>Daily Price: ₹${d.dailyPrice}</p>
+        <p>Total Price: ₹${d.totalPrice}</p>
+        <p>Date: ${d.date}</p>
+      `;
+      container.appendChild(card);
+    });
+  } catch(e){ console.warn("No labour bookings found"); }
+
+  // Show message if empty
+  document.getElementById("noBookings").style.display = hasBooking ? "none" : "block";
+}
+
+loadBookings();
+</script>
+</body>
+</html>
